@@ -11,7 +11,7 @@
     },
     {
       "key": "access_token",
-      "value": ""
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkxNzExNTc4LCJpYXQiOjE3OTE3MDc5NzgsImp0aSI6IjBhMmE2MTlkODI0NDQ1NzE4NWJiMzU3YjVhODM3NmJkIiwidXNlcl9pZCI6IjMifQ.qONwZDTTLEH3cGHIlM6RHyLb6pzdOMnT-8PcFjnDT2U"
     },
     {
       "key": "refresh_token",
@@ -59,7 +59,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Dr. John Smith\",\n  \"email\": \"john.smith@healthcare.org\",\n  \"password\": \"SecurePass123!\"\n}"
+              "raw": "{\n  \"name\": \"Dr. Jane Foster\",\n  \"email\": \"jane.foster@healthcare.org\",\n  \"password\": \"SecurePass123!\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register/",
@@ -81,9 +81,11 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.access) {",
                   "    pm.collectionVariables.set(\"access_token\", jsonData.access);",
+                  "    pm.globals.set(\"access_token\", jsonData.access);",
                   "}",
                   "if (jsonData.refresh) {",
                   "    pm.collectionVariables.set(\"refresh_token\", jsonData.refresh);",
+                  "    pm.globals.set(\"refresh_token\", jsonData.refresh);",
                   "}"
                 ],
                 "type": "text/javascript"
