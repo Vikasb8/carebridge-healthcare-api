@@ -2,12 +2,23 @@ import os
 import sys
 from pathlib import Path
 from datetime import timedelta
-from dotenv import load_dotenv
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-carebridge-secret-key-change-in-production")
+# Optional: load .env only if it exists
+try:
+    from dotenv import load_dotenv
+    env_file = BASE_DIR / ".env"
+    if env_file.exists():
+        load_dotenv(env_file)
+except ImportError:
+    pass
+
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-carebridge-healthcare-api-key-2026-production-ready",
+)
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in ("1", "true", "yes")
 ALLOWED_HOSTS = [x.strip() for x in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost,*").split(",") if x.strip()]
 
@@ -54,10 +65,19 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+# -----------------------------------------------------------------------------
 # Database Configuration
-# Uses PostgreSQL by default per assignment requirements.
-# When running `manage.py test`, uses in-memory SQLite for self-contained, fast testing.
-DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.postgresql")
+# -----------------------------------------------------------------------------
+# - Default: SQLite (db.sqlite3) enables instant, out-of-the-box execution without .env
+# - PostgreSQL: Activated automatically if DB_ENGINE='django.db.backends.postgresql',
+#   USE_POSTGRES='True', or if DB_NAME is set in the environment.
+# - Automated Tests: Always uses fast in-memory SQLite during `manage.py test`.
+# -----------------------------------------------------------------------------
+USE_POSTGRES = (
+    os.getenv("DB_ENGINE") == "django.db.backends.postgresql"
+    or os.getenv("USE_POSTGRES", "False").lower() in ("1", "true", "yes")
+    or "DB_NAME" in os.environ
+)
 
 if "test" in sys.argv:
     DATABASES = {
@@ -66,23 +86,23 @@ if "test" in sys.argv:
             "NAME": ":memory:",
         }
     }
-elif DB_ENGINE == "django.db.backends.sqlite3":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
-else:
+elif USE_POSTGRES:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.getenv("DB_NAME", "carebridge_db"),
             "USER": os.getenv("DB_USER", "carebridge_user"),
-            "PASSWORD": os.getenv("DB_PASSWORD", ""),
+            "PASSWORD": os.getenv("DB_PASSWORD", "carebridge_pass"),
             "HOST": os.getenv("DB_HOST", "127.0.0.1"),
             "PORT": os.getenv("DB_PORT", "5432"),
             "CONN_MAX_AGE": 60,
+        }
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
@@ -102,6 +122,9 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# -----------------------------------------------------------------------------
+# Django REST Framework & SimpleJWT
+# -----------------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -130,4 +153,3 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
-
